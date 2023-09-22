@@ -1,5 +1,8 @@
 import socket
 
+SENSOR_DATA_FORMAT = "SENSOR: {} TIMESTAMP: {} DATA: {}"
+ACTUATOR_COMMAND_FORMAT = "ACTUATOR: {} COMMAND: {}"
+
 class Server:
     def __init__(self, host, port):
         self.host = host
@@ -35,11 +38,29 @@ class ClientHandler:
                     value = int(data[4:])
                     self.server.counter = value
                     print(f"Counter set to {value}")
+                elif data.startswith("SENSOR"):
+                    # Parse sensor data message
+                    parts = data.split()
+                    sensor_id = parts[1]
+                    sensor_reading = parts[-1]
+                    
+                    # Check temperature and control LED
+                    if "TemperatureSensor01" in sensor_id:
+                        temperature = float(sensor_reading)
+                        if temperature > 30.0:  # Adjust the threshold as needed
+                            # Send command to turn on LED
+                            led_command = ACTUATOR_COMMAND_FORMAT.format("LED01", "ON")
+                            self.socket.send(led_command.encode("utf-8"))
+                        else:
+                            # Send command to turn off LED
+                            led_command = ACTUATOR_COMMAND_FORMAT.format("LED01", "OFF")
+                            self.socket.send(led_command.encode("utf-8"))
                 elif data.startswith("GET"):
                     response = str(self.server.counter)
                     self.socket.send(response.encode("utf-8"))
                 else:
                     print(f"Command not found: {data}")
+          
 
 if __name__ == "__main__":
     host = "127.0.0.1"  # Use your desired host IP
