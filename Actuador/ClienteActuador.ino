@@ -1,52 +1,57 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 
-//configuracion de la red wifi
-const char * WIFI_SSID = "FLIA BOLEA ";
-const char * WIFI_PASS = "BRUNOMAT";
+const char* ssid = "Tigo Oswaldo";       // Cambia esto a tu SSID de red WiFi
+const char* password = "FAMILIA_2022";  // Cambia esto a tu contraseña de red WiFi
+const char* serverIP = "192.168.1.137";  // Cambia esto a la dirección IP del servidor
+const int serverPort = 8080;             // Cambia esto al puerto del servidor
 
-// const char * SERVER_ADDRESS = "example.com";
-// const int SERVER_PORT = 1000; //YOUR_PORT
+void setup() {
+  Serial.begin(115200);
+  delay(10);
 
-//configuracion del socket del cliente
-WiFiClient client;
-const char* server_ip = "0.0.0.0";
-const int server_port = 55555;
+  // Conéctate a la red WiFi
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Conectando a WiFi...");
+  }
+  Serial.println("Conexión WiFi establecida");
 
-//configuracion de los pines de los LEDs
-const int led1_pin=1;
-const int led1_pin=2;
-const int led1_pin=3;
-
-void setup(){
-    serial.begin(15200);
-
-    //conexion a la red wifi
-    WiFi.begin(WIFI_SSID,WIFI_PASS);
-    while(WiFi.status()!=WL_CONNECTED){
-        delay(1000);
-        Serial.print("Conectando a la red WIFI...");
-    }
-    Serial.print("Conexion a la red establecida");
-    //cconfiguracion de los pines
-    pinMode(led1_pin, OUTPUT);
-    pinMode(led2_pin, OUTPUT);
-    pinMode(led3_pin, OUTPUT);
+  // Conéctate al servidor
+  WiFiClient client;
+  while (!client.connect(serverIP, serverPort)) {
+    Serial.println("Error al conectar con el servidor. Reintentando...");
+    delay(1000);
+  }
+  Serial.println("Conexión al servidor establecida");
 }
 
-void loop(){
-    //conecxion al servidor y recepcion de temperatura
-    if(client.connect(server_ip, server_port))
-    {
-        string temperature_str= client.readStringUntil('\n');
-        client.stop();
-        if(temperature_str!="")
-        {
-            Serial.print("Temperatura recibida: ");
-            Serial.println(temperature_str);
-        }
+void loop() {
+  // Espera a recibir datos del servidor
+  WiFiClient client;
+  while (!client.connect(serverIP, serverPort)) {
+    Serial.println("Error al conectar con el servidor. Reintentando...");
+    delay(1000);
+  }
 
-        float temperature = temperature_srl.toFloat();
-        //codigo para encender o apagar los LEDs
-    }
+  // Lee los datos del servidor
+  String response = "";
+  while (client.available()) {
+    char c = client.read();
+    response += c;
+  }
+
+  // Procesa los datos recibidos (asumiendo que la distancia se envía como texto)
+  if (!response.isEmpty()) {
+    Serial.print("Distancia recibida del servidor: ");
+    Serial.println(response);
+    // Aquí puedes realizar acciones en función de la distancia recibida
+  }
+
+  // Cierra la conexión
+  client.stop();
+
+  // Espera antes de hacer otra solicitud al servidor
+  delay(5000);
 }
