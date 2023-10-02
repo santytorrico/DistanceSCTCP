@@ -71,7 +71,6 @@ class Server:
                             message = 'RED'
                         
                     else:
-                        print(f"-----: ",distance)
                         message = 'OFF'
 
                     client_socket.send(message.encode("utf-8"))
